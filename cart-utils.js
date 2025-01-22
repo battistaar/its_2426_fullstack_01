@@ -24,9 +24,12 @@ export function calcCartItem(item, vat) {
     const discountedPrice = getDiscountedPrice(item.netPrice, item.discount);
     const price = getVatPrice(discountedPrice, vat);
     const total = price * item.quantity;
+
     return {
         ...item,
+        discountedPrice: discountedPrice * item.quantity,
         totalPrice: total,
+        discountAmount: total * item.discount / 100,
         totalWeight: item.weight * item.quantity 
     };
 }
@@ -42,3 +45,10 @@ export function printCartItem(item) {
 export function getVat(country) {
     return country === 'IT' ? 0.22 : 0;
 }
+
+export function createElement(template) {
+    let container = document.createElement('div');
+    let html = template.trim();
+    container.innerHTML = html;
+    return container.firstChild;
+  }

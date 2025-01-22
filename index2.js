@@ -1,55 +1,12 @@
 import { cart } from "./cart-data.js";
 import { getVat, calcCartItem, getTransportFee } from "./cart-utils.js";
+import { CartItem } from './cart-item.js';
 
 function createElement(template) {
   let container = document.createElement('div');
   let html = template.trim();
   container.innerHTML = html;
   return container.firstChild;
-}
-
-function createCartItem(item, onQtyChanged) {
-  let template = `
-        <li class="list-group-item item">
-          <div class="d-flex flex-row d-flex justify-content-between align-items-center">
-            <div class="item-name">
-              ${item.name}
-            </div>  
-  
-            <div class="d-flex flex-row align-items-center justify-content-end flex-wrap">
-              <span class="ms-2 d-flex flex-row align-items-center">
-                <label class="me-1" for="quantity">qty:</label>
-                <input class="form-control item-quantity" value="${item.quantity}" type="number" style="width: 70px">
-              </span>
-              <span class="ms-2">
-                <span class="item-price"></span>
-                <span class="item-discount"></span>
-              </span>
-            </div>
-          </div>
-        </li>
-      `;
-      
-      const toAdd = createElement(template);
-
-      let qtyInput = toAdd.querySelector('input.item-quantity');
-      qtyInput.addEventListener('change', (event) => {
-        onQtyChanged(parseInt(event.target.value));
-      });
-      updateCartItem(toAdd, item);
-      return toAdd;
-}
-
-function updateCartItem(element, data) {
-  element.querySelector('.item-price').innerHTML = `${data.totalPrice}€`;
-
-  const discount = Math.round(data.discountAmount * 100)/100;
-
-  if (discount > 0) {
-    element.querySelector('.item-discount').innerHTML = `(-${discount}€)`;
-  } else {
-    element.querySelector('.item-discount').innerHTML = '';
-  }
 }
 
 function updateSummary(cartItems, vat) {
@@ -106,15 +63,13 @@ window.onload = function() {
   const container = document.getElementById('items-list');
   container.innerHTML = '';
   cart.forEach(item => {
-    const parsedItem = calcCartItem(item, vat);
-
-    const element = createCartItem(parsedItem, newQty => {
-      item.quantity = newQty;
-      updateCartItem(element, calcCartItem(item, vat));
+    const cartItem = new CartItem(item, vat);
+    cartItem.addEventListener('quantityChange', (event) => {
+      item.quantity = event.detail.quantity;
+      cartItem.item = item;
       updateSummary(cart, vat);
     });
-
-    container.appendChild(element);
+    container.appendChild(cartItem.element);
   });
 
   updateSummary(cart, vat);
